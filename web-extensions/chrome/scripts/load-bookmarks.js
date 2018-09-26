@@ -11,6 +11,41 @@ function generateBookmarkList(bookmarks) {
     }
 }
 
+function hideMangaEntry(entry) {
+	entry.style.display = 'none';
+}
+
+function showMangaEntry(entry) {
+	entry.style.display = '';
+}
+
+function fuzzyMatch(value, match) {
+	var lvalue = value.toLowerCase();
+	var lmatch = match.toLowerCase();
+	for (var i=0; i < lmatch.length; ++i) {
+		var idx = lvalue.indexOf(lmatch[i]);
+		if (idx === -1) {
+			return false;
+		}
+		lvalue = lvalue.slice(idx);
+	}
+	return true;
+}
+
+function filterBookmarkList() {
+	var sbox = document.getElementById('searchbox');
+	var str = sbox.value;
+	var mangaList = document.getElementById('manga-list');
+	for (var i=0; i < mangaList.childNodes.length; ++i) {
+		entry = mangaList.childNodes[i];
+		if (fuzzyMatch(entry.innerText, sbox.value)) {
+			showMangaEntry(entry);
+		} else {
+			hideMangaEntry(entry);
+		}
+	};
+}
+
 function clickedOnManga(comicName) {
     const engine = new BmcEngine();
     engine.addEventListener(engine.events.register.error, err => {
@@ -27,10 +62,15 @@ function addEvents() {
     but.onclick = function() {
         showHideSidePanel(but);
     };
+     var sbox = document.getElementById('searchbox');
+     sbox.oninput = function() {
+     	  console.log('Input of searchbox changed: filtering bookmarks list');
+     	  filterBookmarkList();
+     };
 }
 
 function showHideSidePanel(elem) {
-    var panel = document.getElementById("manga-list");
+    var panel = document.getElementById("side-panel");
     if (panel.style.display === "none") {
         panel.style.display = '';
         elem.innerText = '<';

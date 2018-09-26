@@ -3,7 +3,20 @@
   <head>
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' filesystem: ; object-src 'self'; ">
     <style>
-      #manga-list {
+      #searchbox {
+        width: calc(100vw - 10px);
+        border-right: 1px solid #ccc;
+        top: 0;
+        background-color: #fdfdfd;
+        left: 0;
+      }
+      #searchbox > div {
+        font-size: 14px;
+        padding: 5px;
+        border-bottom: 1px solid #ccc;
+        cursor: text;
+      }
+      #side-panel {
         width: calc(100vw - 16px);
         border-right: 1px solid #ccc;
         position: absolute;
@@ -43,7 +56,9 @@
     <script src="engine/bookmycomics.js"></script>
   </head>
   <body>
-    <div id="manga-list">
+    <div id="side-panel">
+      <input type="text" placeholder="Search..." id="searchbox"></input>
+      <div id="manga-list"></div>
     </div>
     <div id="hide-but">&lt;</div>
   </body>
