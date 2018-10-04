@@ -1,7 +1,9 @@
 /**
  *
  */
-function BmcUI() {
+
+function BmcUI(messagingHandler) {
+    this._messaging = messagingHandler;
 }
 
 function isChrome() {
@@ -10,33 +12,6 @@ function isChrome() {
 
 BmcUI.prototype.INFOBAR_ID = 'BmcInfoBar';
 BmcUI.prototype.SIDEPANEL_ID = 'BmcSidePanel';
-
-BmcUI.prototype.setupMessages = function(func) {
-    // Setup the cross-window (iframe actually) messaging to get notified when
-    // the iframe will have spent its usefulness.
-    window.addEventListener('message', event => {
-        if (event.type === 'message') {
-            if (typeof(event) === 'Error') {
-                console.log(`Got message error: ${JSON.stringify(err, ["message", "arguments", "type", "name"])}`);
-                return ;
-            }
-	    /*
-	     * NOTE
-	     * Origin is actually shown as the extension's internal URL, so
-             * let's retrieve it using runtime.getURL(''); and compare the
-	     * origin against it.
-	     * Note that the origin does not include an ending '/' while the
-	     * URL of the extension does, hence the 'indexOf' method rather
-	     * than a simple '===' comparison.
-	     */
-            var bro = getBrowser();
-            var bmcOrigin = bro.runtime.getURL('');
-            if (bmcOrigin.indexOf(event.origin) !== -1) {
-                func(event);
-            }
-        }
-    });
-}
 
 BmcUI.prototype.makeInfobar = function(resourcePath) {
     var height = '40px';
@@ -59,17 +34,18 @@ BmcUI.prototype.makeInfobar = function(resourcePath) {
     var bodyStyle = document.body.style;
     var cssTransform = 'transform' in bodyStyle ? 'transform' : 'webkitTransform';
     bodyStyle[cssTransform] = 'translateY(' + height + ')';
-    this.setupMessages(function(event) {
-        try {
-            var data = JSON.parse(event.data);
-        } catch(e) {
-            console.log(e);
-            return;
-        }
-        if (data.type === 'action' && data.action === 'RemoveInfoBar') {
+    this._messaging.addWindowHandler(
+        this.INFOBAR_ID,
+        evData => evData.type === 'action' && evData.action === 'RemoveInfoBar',
+        evData => {
+            try {
+                var data = JSON.parse(event.data);
+            } catch(e) {
+                console.log(e);
+                return;
+            }
             iframe.parentNode.removeChild(iframe);
-        }
-    });
+        });
 };
 
 BmcUI.prototype.buildSidePanel = function(resourcePath) {
@@ -87,15 +63,18 @@ BmcUI.prototype.buildSidePanel = function(resourcePath) {
     iframe.style.border = 'none';
     // Etc. Add your own styles if you want to
     document.documentElement.appendChild(iframe);
-    this.setupMessages(function(event) {
-        try {
-            var data = JSON.parse(event.data);
-        } catch(e) {
-            console.log(e);
-            return;
-        }
-        console.log('message received: ' + data['comicName']);
-    });
+    this._messaging.addWindowHandler(
+        this.SIDEPANEL_ID,
+        evData => true,
+        evData => {
+            try {
+                var data = JSON.parse(event.data);
+            } catch(e) {
+                console.log(e);
+                return;
+            }
+            console.log('message received: ' + data['comicName']);
+        });
 };
 
 BmcUI.prototype.makeRegisterDialog = function(comicName, chapter, page) {
@@ -107,6 +86,7 @@ BmcUI.prototype.makeRegisterDialog = function(comicName, chapter, page) {
 BmcUI.prototype.removeRegisterDialog = function() {
     const infobar = document.getElementById(this.INFOBAR_ID);
     infobar.parentNode.removeChild(infobar);
+    this._messaging.removeWindowHandlers(this.INFOBAR_ID);
 };
 
 BmcUI.prototype.makeSidePanel = function() {
@@ -117,6 +97,7 @@ BmcUI.prototype.makeSidePanel = function() {
 BmcUI.prototype.removeSidePanel = function() {
     const sidepanel = document.getElementById(this.SIDEPANEL_ID);
     sidepanel.parentNode.removeChild(sidepanel);
+    this._messaging.removeWindowHandlers(this.SIDEPANEL_ID);
 };
 
 BmcUI.prototype.makeTrackingNotification = function(err) {
