@@ -77,10 +77,9 @@ BmcUI.prototype.buildSidePanel = function(resourcePath) {
         });
 };
 
-BmcUI.prototype.makeRegisterDialog = function(comicName, chapter, page) {
+BmcUI.prototype.makeRegisterDialog = function() {
     var bro = getBrowser();
-    this.makeInfobar(bro.runtime.getURL('register-diag.html')
-        + `?comicName=${encodeURIComponent(comicName)}&chapter=${chapter}&page=${page}`);
+    this.makeInfobar(bro.runtime.getURL('register-diag.html'));
 };
 
 BmcUI.prototype.removeRegisterDialog = function() {
