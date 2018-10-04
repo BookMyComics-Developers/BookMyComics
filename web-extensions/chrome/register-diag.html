@@ -8,20 +8,21 @@
         width: 100%;
         outline: none;
         overflow: hidden;
-        text-align: center;
+        text-align: left;
       }
       .buttons > button {
-        padding: 2px 5px;
-        border: 1px solid #4646f5;
-        border-radius: 2px;
-        background-color: #4646f5;
-        color: #fff;
-        font-size: 14px;
-        cursor: pointer;
+        border-color: #252525;
+        background-color: #259925;
+        border-radius: 50%;
+        padding: 4px 8px;
+        opacity: 0.5;
       }
       .buttons > button:hover {
-        border-color: #5757f7;
-        background-color: #5757f7;
+        border-color: #bbbbbb;
+        background-color: #25cc25;
+        border-radius: 50%;
+        padding: 4px 8px;
+        opacity: 1;
       }
     </style>
     <script src="engine/storage.js"></script>
@@ -31,9 +32,7 @@
   </head>
   <body>
     <div class="buttons">
-      <button id='registerComic'>Register</button>
-      <button id='aliasComic'>Link to existing</button>
-      <button id='ignoreComic'>Not now</button>
+      <button id='register'>+</button>
     </div>
   </body>
   <script src="scripts/register-diag.js" crossorigin="anonymous"></script>
