@@ -102,6 +102,19 @@ BmcEngine.prototype._memoizeComic = function () {
 }
 
 /*
+ * This function is the main window's entry point to setup the add-on's
+ * necessary utilities (UI, background process, etc.)
+ * It requires the current page's comis info, for any UI that might need to be
+ * spawned and would require it.
+ *
+ */
+BmcEngine.prototype.setup = function() {
+    return this._ui.makeSidePanel(
+        () => this.track(),
+        this._comic.name, this._comic.chapter, this._comic.page);
+}
+
+/*
  * This function is the entrypoint for a reader page, which spawns the right UI
  * piece according to the situation.
  *
@@ -112,14 +125,13 @@ BmcEngine.prototype._memoizeComic = function () {
 BmcEngine.prototype.track = function() {
     console.log(`BookMyComic: bmcEngine.track: manga=${this._comic.name} chapter=${this._comic.chapter} page=${this._comic.page}`);
 
-    this._ui.makeSidePanel(this._comic.name, this._comic.chapter, this._comic.page);
     // One single way to handle this, whether the id was already memoized or
     // not: use the event handling.
     console.warn(`Attempting track: event=${this.events.load}`);
     this.addEventListener(this.events.load, () => {
         console.log(`BookMyComic: bmcEngine.track.doTrack: Got comicId from storage: ${this._comic.id}`);
         if (this._comic.id === null) {
-            this._ui.makeRegisterDialog(this._comic.name, this._comic.chapter, this._comic.page);
+            this._ui.makeRegisterDialog();
             return;
         }
         this._db.updateComic(this._comic.id, this._comic.chapter, this._comic.page,

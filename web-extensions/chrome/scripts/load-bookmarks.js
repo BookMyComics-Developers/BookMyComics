@@ -1,3 +1,9 @@
+const uriParams = document.location.search.split('?')[1].split('&');
+const comicName = decodeURI(uriParams[0].split('=')[1]);
+const chapter = uriParams[1].split('=')[1];
+const page = uriParams[2].split('=')[1];
+console.log(`BmcSideBar: comic ${comicName}, chapter=${chapter}, page=${page}`);
+
 function BmcMangaList() {
     this._node = document.getElementById('manga-list');
 }
@@ -60,21 +66,29 @@ BmcMangaList.prototype.filter = function(filterStr) {
 
 
 function showHideSidePanel() {
+    var evData = {
+        type: "action",
+        action: null,
+    };
     var btn = document.getElementById('hide-but');
     var panel = document.getElementById("side-panel");
     if (panel.style.display === "none") {
+        evData.action = "ShowSidePanel",
         panel.style.display = '';
         panel.style.width = 'calc(100vw - 16px)';
         btn.innerText = '<';
         btn.style.left = '';
         btn.style.right = '0';
     } else {
+        evData.action = "HideSidePanel",
         panel.style.display = 'none';
         panel.style.width = '0';
         btn.innerText = '>';
         btn.style.left = '0';
         btn.style.right = 'initial';
     }
+    // Notify top window of the SidePanel action
+    window.top.postMessage(evData, '*');
 }
 
 function addEvents(mangaList) {

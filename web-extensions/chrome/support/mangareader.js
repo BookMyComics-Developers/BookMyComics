@@ -26,7 +26,7 @@ function sendUpdatesForMangaReader() {
     // Now, let the engine do its magic: Register, track, etc.
     const engine = new BmcEngine(manga, chapter, page);
     console.log('Instanciated BmcEngine');
-    engine.track();
+    engine.setup();
 }
 
 sendUpdatesForMangaReader();
