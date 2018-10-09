@@ -5,7 +5,7 @@
  *
  * @class BmcEngine
  */
-function BmcEngine(comicName, chapter, page) {
+function BmcEngine(readerName, comicName, chapter, page) {
     this._db = new BmcDataAPI();
     console.log('Instanciated BmcDataAPI');
     this._messaging = new BmcMessagingHandler();
@@ -22,6 +22,7 @@ function BmcEngine(comicName, chapter, page) {
     // A bit of stateful data, so that we can avoid re-checking the storage
     // everytime (and thus speed-up a bit the logic that spawn the UI bits)
     this._comic = {
+        reader: readerName,
         name: comicName,
         chapter,
         page,
@@ -60,7 +61,6 @@ BmcEngine.prototype.events = {
  * Utility function to dispatch the comicId load completion event.
  */
 BmcEngine.prototype._dispatchLoad = function () {
-    console.warn(`Dispatching: ${this.events.load}`);
     this.dispatchEvent(new CustomEvent(this.events.load));
 }
 
@@ -93,7 +93,7 @@ BmcEngine.prototype._memoizeComic = function () {
         return ;
     }
     this._comic.memoizing = true;
-    this._db.findComic(this._comic.name, (err, comicId) => {
+    this._db.findComic(this._comic.reader, this._comic.name, (err, comicId) => {
         // console.log('BmcEngine._memoizeComic: memoized id=', comicId);
         this._comic.id = comicId;
         this._comic.memoizing = false;

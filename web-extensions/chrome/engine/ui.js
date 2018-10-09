@@ -93,8 +93,9 @@ BmcUI.prototype.removeRegisterDialog = function() {
 
 BmcUI.prototype.makeSidePanel = function(setupTracker, comicName, chapter, page) {
     var bro = getBrowser();
+    const reader = window.location.hostname;
     this.buildSidePanel(setupTracker, bro.runtime.getURL('sidebar.html')
-        + `?comicName=${encodeURIComponent(comicName)}&chapter=${chapter}&page=${page}`);
+        + `?reader=${reader}&comicName=${encodeURIComponent(comicName)}&chapter=${chapter}&page=${page}`);
 };
 
 BmcUI.prototype.removeSidePanel = function() {

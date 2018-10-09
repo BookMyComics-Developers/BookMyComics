@@ -6,22 +6,50 @@
     "content_scripts": [
         {
             "matches": ["https://www.mangaeden.com/en/en-manga/*"],
-            "js": ["engine/storage.js", "engine/messaging.js", "engine/ui.js", "engine/bookmycomics.js", "support/mangaeden.js"],
+            "js": [
+                "engine/storage.js",
+                "engine/datamodel.js",
+                "engine/messaging.js",
+                "engine/ui.js",
+                "engine/bookmycomics.js",
+                "support/mangaeden.js"
+            ],
             "all_frames": true
         },
         {
             "matches": ["*://fanfox.net/manga/*"],
-            "js": ["engine/storage.js", "engine/messaging.js", "engine/ui.js", "engine/bookmycomics.js", "support/mangafox.js"],
+            "js": [
+                "engine/storage.js",
+                "engine/datamodel.js",
+                "engine/messaging.js",
+                "engine/ui.js",
+                "engine/bookmycomics.js",
+                "support/mangafox.js"
+            ],
             "all_frames": true
         },
         {
             "matches": ["*://mangahere.us/*"],
-            "js": ["engine/storage.js", "engine/messaging.js", "engine/ui.js", "engine/bookmycomics.js", "support/mangahere.js"],
+            "js": [
+                "engine/storage.js",
+                "engine/datamodel.js",
+                "engine/messaging.js",
+                "engine/ui.js",
+                "engine/bookmycomics.js",
+                "support/mangahere.js"
+            ],
             "all_frames": true
         },
         {
             "matches": ["https://www.mangareader.net/*"],
-            "js": ["engine/storage.js", "engine/messaging.js", "engine/ui.js", "engine/bookmycomics.js", "support/mangareader.js"],
+            "js": [
+                "engine/storage.js",
+                "engine/datamodel.js",
+                "engine/messaging.js",
+                "engine/ui.js",
+                "engine/bookmycomics.js",
+                "support/mangareader.js"
+            ],
             "all_frames": true
         }
     ],
@@ -29,6 +57,7 @@
         "sidebar.html",
         "register-diag.html",
         "engine/storage.js",
+        "engine/datamodel.js",
         "engine/messaging.js",
         "engine/ui.js",
         "engine/bookmycomics.js",
