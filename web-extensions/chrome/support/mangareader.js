@@ -1,14 +1,14 @@
-function sendUpdatesForMangaReader() {
+function readerURLParse() {
     var path = window.location.pathname;
     var parts = path.split("/").filter(function(s) { return s.length !== 0});
     var not_mangas = ["popular", "search", "alphabetical", "latest", "random"];
 
     if (parts.length < 1) {
-        return;
+        return null;
     }
     for (var i = 0; i < not_mangas.length; ++i) {
         if (parts[0] === not_mangas[i]) {
-            return;
+            return null;
         }
     }
     var manga = parts[0];
@@ -23,10 +23,5 @@ function sendUpdatesForMangaReader() {
         }
     }
 
-    // Now, let the engine do its magic: Register, track, etc.
-    const engine = new BmcEngine(window.location.hostname, manga, chapter, page);
-    console.log('Instanciated BmcEngine');
-    engine.setup();
+    return { manga, chapter, page };
 }
-
-sendUpdatesForMangaReader();

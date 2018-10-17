@@ -123,6 +123,10 @@ BmcEngine.prototype.setup = function() {
  *
  */
 BmcEngine.prototype.track = function() {
+    if (! this._comic.name) {
+        console.log("BmcEngine.track: Nothing to track");
+        return ;
+    }
     console.log(`BookMyComic: bmcEngine.track: manga=${this._comic.name} chapter=${this._comic.chapter} page=${this._comic.page}`);
 
     // One single way to handle this, whether the id was already memoized or

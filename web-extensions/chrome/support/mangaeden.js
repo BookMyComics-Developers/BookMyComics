@@ -1,9 +1,9 @@
-function sendUpdatesForMangaEden() {
+function readerURLParse() {
     var path = window.location.pathname;
     var parts = path.split("/").filter(function(s) { return s.length !== 0});
 
     if (parts.length < 3) {
-        return;
+        return null;
     }
     var manga = parts[2];
     var chapter = null;
@@ -13,10 +13,5 @@ function sendUpdatesForMangaEden() {
         page = parts[4];
     }
 
-    // Now, let the engine do its magic: Register, track, etc.
-    const engine = new BmcEngine(window.location.hostname, manga, chapter, page);
-    console.log('Instanciated BmcEngine');
-    engine.setup();
+    return { manga, chapter, page };
 }
-
-sendUpdatesForMangaEden();

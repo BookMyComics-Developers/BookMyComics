@@ -12,7 +12,8 @@
                 "engine/messaging.js",
                 "engine/ui.js",
                 "engine/bookmycomics.js",
-                "support/mangaeden.js"
+                "support/mangaeden.js",
+                "entrypoint.js"
             ],
             "all_frames": true
         },
@@ -24,7 +25,8 @@
                 "engine/messaging.js",
                 "engine/ui.js",
                 "engine/bookmycomics.js",
-                "support/mangafox.js"
+                "support/mangafox.js",
+                "entrypoint.js"
             ],
             "all_frames": true
         },
@@ -36,7 +38,8 @@
                 "engine/messaging.js",
                 "engine/ui.js",
                 "engine/bookmycomics.js",
-                "support/mangahere.js"
+                "support/mangahere.js",
+                "entrypoint.js"
             ],
             "all_frames": true
         },
@@ -48,7 +51,8 @@
                 "engine/messaging.js",
                 "engine/ui.js",
                 "engine/bookmycomics.js",
-                "support/mangareader.js"
+                "support/mangareader.js",
+                "entrypoint.js"
             ],
             "all_frames": true
         }
