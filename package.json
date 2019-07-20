@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "description": "A WebExtension to track your ongoing Manga/Comics scans",
   "devDependencies": {
-    "eslint": "^5.14.1",
-    "web-ext": "^3.0.0"
+    "eslint": "^6.0.1",
+    "web-ext": "^3.1.1"
   },
   "scripts": {
     "lint": "eslint $(git ls-files | grep '.js$')",
+    "lint-fix": "eslint --fix $(git ls-files | grep '.js$')",
     "test": "python setup.py chrome && pytest -vvv -s",
     "build": "python setup.py firefox && web-ext -s web-extensions/chrome -a ./build/ build --overwrite-dest && python setup.py chrome"
   },

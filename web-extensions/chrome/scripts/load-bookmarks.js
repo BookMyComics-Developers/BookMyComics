@@ -141,6 +141,29 @@ BmcMangaList.prototype.onEntryDelete = function(ev) {
     window.top.postMessage(evData, '*');
 };
 
+BmcMangaList.prototype.generateSource = function(comic, source, sourceListElem) {
+    const srcElem = document.createElement('div');
+    srcElem.classList.add('label-container');
+
+    const srcLink = document.createElement('div');
+    srcLink.classList.add('label');
+    srcLink.innerText = source.reader;
+    srcLink.bmcData = {
+        reader: source.reader,
+        name: source.name,
+    };
+    srcLink.onclick = this.onSourceClick.bind(this, comic, source);
+    srcElem.appendChild(srcLink);
+
+    const deleteSrcIcon = document.createElement('span');
+    deleteSrcIcon.classList.add('fa', 'fa-trash');
+    deleteSrcIcon.setAttribute('aria-hidden', 'true');
+    deleteSrcIcon.onclick = this.onSourceDelete.bind(this);
+    srcElem.appendChild(deleteSrcIcon);
+
+    sourceListElem.appendChild(srcElem);
+};
+
 BmcMangaList.prototype.generateComic = function(comic) {
     const elm = document.createElement('div');
     elm.classList.toggle('mangaListItem');
@@ -171,26 +194,7 @@ BmcMangaList.prototype.generateComic = function(comic) {
     elm.appendChild(comicSrcList);
 
     comic.iterSources(source => {
-        const srcElem = document.createElement('div');
-        srcElem.classList.add('label-container');
-
-        const srcLink = document.createElement('div');
-        srcLink.classList.add('label');
-        srcLink.innerText = source.reader;
-        srcLink.bmcData = {
-            reader: source.reader,
-            name: source.name,
-        };
-        srcLink.onclick = this.onSourceClick.bind(this, comic, source);
-        srcElem.appendChild(srcLink);
-
-        const deleteSrcIcon = document.createElement('span');
-        deleteSrcIcon.classList.add('fa', 'fa-trash');
-        deleteSrcIcon.setAttribute('aria-hidden', 'true');
-        deleteSrcIcon.onclick = this.onSourceDelete.bind(this);
-        srcElem.appendChild(deleteSrcIcon);
-
-        comicSrcList.appendChild(srcElem);
+        this.generateSource(comic, source, comicSrcList);
     });
 
     return elm;
@@ -265,6 +269,18 @@ function displayButton(btn) {
     const panel = document.getElementById('side-panel');
     if (panel && btn && panel.style.display !== 'block') {
         btn.style.display = 'block';
+    }
+}
+
+function inputChanges() {
+    var entries = Array.prototype.slice.call(document.getElementById('existing-entries')
+        .childNodes);
+    for (let i = 0; i < entries.length; ++i) {
+        if (entries[i].innerText.indexOf(this.value) !== -1) {
+            entries[i].style.display = '';
+        } else {
+            entries[i].style.display = 'none';
+        }
     }
 }
 
@@ -436,6 +452,57 @@ function addEvents(mangaList) {
                     'source': evData.comicSource,
                     'name': evData.comicName,
                 };
+                if (evData.operation === 'Alias Comic') {
+                    const mangas = Array.prototype.slice.call(document.getElementsByClassName('mangaListItem'));
+                    let sourcesRef;
+                    for (let i = 0; i < mangas.length; ++i) {
+                        // div.mangaListItem > div.label-container > div.label
+                        const manga = mangas[i].firstChild.firstChild;
+                        if (manga.bmcData.id !== evData.comicId) {
+                            continue;
+                        }
+                        bmcDb.getComic(evData.comicId, (err, comic) => {
+                            if (comic === null) {
+                                return;
+                            }
+                            const source = comic.getSource(evData.comicSource);
+                            if (source === null) {
+                                return;
+                            }
+                            let sources = Array.prototype.slice.call(mangas[i].getElementsByClassName('nested'));
+                            if (sources.length < 1) {
+                                return;
+                            }
+                            // Check if the source is already present
+                            sourcesRef = Array.prototype.slice.call(sources[0].getElementsByClassName('label'));
+                            for (let y = 0; y < sourcesRef.length; ++y) {
+                                if (sourcesRef[y].innerText === evData.comicSource) {
+                                    // FIXME: maybe use localization in here?
+                                    console.log(`Source "${sourcesRef[y].innerText}" already present, no need to add it.`);
+                                    return;
+                                }
+                            }
+                            mangaList.generateSource(comic, source, sources[0]);
+                        });
+                    }
+                } else if (evData.operation === 'Register Comic') {
+                    // First, let's check if the manga isn't already in the list...
+                    const mangas = Array.prototype.slice.call(document.getElementsByClassName('mangaListItem'));
+                    for (let i = 0; i < mangas.length; ++i) {
+                        // div.mangaListItem > div.label-container > div.label
+                        const manga = mangas[i].firstChild.firstChild;
+                        if (manga.bmcData.id !== evData.comicId) {
+                            console.log(`Manga "${manga.innerText}" already present, no need to add it.`);
+                            return;
+                        }
+                    }
+                    bmcDb.getComic(evData.comicId, (err, comic) => {
+                        if (comic === null) {
+                            return;
+                        }
+                        mangaList.generateComic(comic);
+                    });
+                }
             }
         });
 

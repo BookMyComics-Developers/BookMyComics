@@ -282,7 +282,7 @@ BmcComic.prototype.iterSources = function(iterFunc) {
 
 /**
  * This method return the matching source (comparison being performed on the
- * reader) or `null` if non matching was found.
+ * reader) or `null` if no match was found.
  *
  * @param {string} sourceReader - The reader of the source we want to get.
  *
@@ -290,14 +290,11 @@ BmcComic.prototype.iterSources = function(iterFunc) {
  *
  */
 BmcComic.prototype.getSource = function(sourceReader) {
-    for (var i = 0; i < this._sources.length; ++i) {
-        const source = this._sources[i];
-
-        if (source.reader === sourceReader) {
-            return source;
-        }
+    const match = this._sources.find(source => source.reader === sourceReader);
+    if (typeof match === 'undefined') {
+        return null;
     }
-    return null;
+    return match;
 };
 
 /**
@@ -368,7 +365,6 @@ BmcComic.prototype.addSource = function(source) {
     this._sources.push(source);
     return true;
 };
-
 
 
 
