@@ -2,7 +2,6 @@
     BmcDataAPI:readable
     BmcMessagingHandler:readable
     BmcUI:readable
-    compat:readable
     LOGS:readable
     cloneArray
 */
@@ -79,28 +78,15 @@ BmcMangaList.prototype.onSourceClick = function(comic, source) {
         resource: {
             origin: window.location.origin,
             reader: source.reader,
+            comicId: comic.id,
             comic: Object.assign({
                 common: {
                     name: source.name,
-                    chapter: comic.chapter,
-                    page: comic.page,
                 },
             }, source.info),
         },
     };
-    compat.sendMessage(ev, (err, response) => {
-        if (err) {
-            LOGS.warn('E0013', {'err': err});
-            return undefined;
-        }
-        let localEv = {
-            type: 'action',
-            action: 'urlopen',
-            url: response.resource.url,
-        };
-        // Let the content script at the page's root handle the URL opening
-        window.top.postMessage(localEv, '*');
-    });
+    window.top.postMessage(ev, '*');
 };
 
 BmcMangaList.prototype.onSourceDelete = function(ev) {

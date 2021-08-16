@@ -14,8 +14,7 @@
             "support/manganato.js",
             "support/mangakakalot.js",
             "support/isekaiscan.js",
-            "sources.js",
-            "background-engine.js"
+            "sources.js"
         ]
     },
     "content_scripts": [

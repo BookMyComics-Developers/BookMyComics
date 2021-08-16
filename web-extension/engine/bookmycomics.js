@@ -1,6 +1,7 @@
 /* globals
     BmcDataAPI:readable
     BmcMessagingHandler:readable
+    BmcSources:readable
     BmcUI:readable
     LOGS:readable
 */
@@ -22,6 +23,8 @@ function BmcEngine(hostOrigin, readerName, comicInfo) {
     LOGS.log('S14', {'elem': 'BmcMEssagingHandler'});
     this._ui = new BmcUI(this._messaging, this._db);
     LOGS.log('S14', {'elem': 'BmcUI'});
+    this._bmcSources = new BmcSources();
+    LOGS.log('S66');
 
     // Re-use DOM-style events by using a null-text node underneath
     this._eventCore = document.createTextNode(null);
@@ -81,13 +84,6 @@ function BmcEngine(hostOrigin, readerName, comicInfo) {
                     this._ui.makeNotification(`Delete ${kind}`, retErr);
                 });
         });
-    // Handle "URLOpen"
-    this._messaging.addWindowHandler(
-        ENGINE_ID,
-        evData => evData.type === 'action' && evData.action === 'urlopen',
-        evData => {
-            window.location.replace(evData.url);
-        });
     // Handle "Comic information query"
     this._messaging.addWindowHandler(
         ENGINE_ID,
@@ -95,6 +91,27 @@ function BmcEngine(hostOrigin, readerName, comicInfo) {
         () => {
             this.sendNotificationWithComicInfo('Comic Information', null);
         });
+
+    this._messaging.addWindowHandler(
+        ENGINE_ID,
+        evData => evData.type === 'computation'
+              && evData.module === 'sources'
+              && evData.computation === 'URL:Generate:Request',
+        evData => { // Don't receive `sender`, as we don't use it.
+            LOGS.log('S68', {'evData': evData});
+
+            this._db.getComic(evData.resource.comidId, (err, comic) => {
+                if (comic === null) {
+                    return ;
+                }
+                evData.resource.comic.common.page = comic.page;
+                evData.resource.comic.common.chapter = comic.chapter;
+                const url = this._bmcSources.computeURL(evData.resource.reader, evData.resource.comic);
+                window.location.replace(url);
+            });
+            return null;
+        }
+    );
 
     // A bit of stateful data, so that we can avoid re-checking the storage
     // everytime (and thus speed-up a bit the logic that spawn the UI bits)

@@ -172,9 +172,9 @@ function Localization(lang = DEFAULT_LANG) {
         'S46': {
             'en': 'BmcSideBar: BmcMangaList: onAlias: Label={label} id={id}',
         },
-        'S47': {
-            'en': 'BookMyComics: load-bookmark.js: sendmessage failed: err={err}',
-        },
+        // 'S47': {
+        //     'en': 'BookMyComics: load-bookmark.js: sendmessage failed: err={err}',
+        // },
         // 'S48': {
         //     'en': 'clickedOnManga!, mode={mode}, event: {event}',
         // },
@@ -230,16 +230,16 @@ function Localization(lang = DEFAULT_LANG) {
             'en': 'No entry selected, we shouldn\'t be here...',
         },
         'S66': {
-            'en': 'BookMyComics: background-script.js: Instanciated BmcSources',
+            'en': 'BookMyComics: bookmycomics.js: Instanciated BmcSources',
         },
-        'S67': {
-            'en': 'BookMyComics: background-script.js: Instanciated BmcMessagingHandler',
-        },
+        // 'S67': {
+        //     'en': 'BookMyComics: background-script.js: Instanciated BmcMessagingHandler',
+        // },
         'S68': {
-            'en': 'BookMyComics: background-engine.js: Handling URL:Generate Request: {evData}',
+            'en': 'BookMyComics: bookmycomics.js: Handling URL:Generate Request: {evData}',
         },
         // 'S69': {
-        //     'en': 'BookMyComics: background-engine.js: Handling URL:Parse Request: {evData}',
+        //     'en': 'BookMyComics: bookmycomics.js: Handling URL:Parse Request: {evData}',
         // },
         'S70': {
             'en': 'Missing operation in BmcUI.makeNotification',
@@ -305,7 +305,7 @@ function Logs(level = INFO) {
         'E0010': 'S15',
         'E0011': 'S13',
         'E0012': 'S38',
-        'E0013': 'S47',
+        // 'E0013': 'S47',
         // 'E0014': 'S50',
         'E0015': 'S55',
         'E0016': 'S56',
