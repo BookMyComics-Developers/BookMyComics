@@ -58,3 +58,32 @@ class TestSidebarDisplay:
         assert init_state != controller.sidebar.hidden
         controller.sidebar.toggle()
         assert init_state == controller.sidebar.hidden
+
+    @staticmethod
+    @pytest.mark.order(after='test_toggle')
+    def test_open_persistence(controller, unique_reader):
+        unique_reader.home()
+        assert controller.sidebar.loaded
+
+        # Ensures that the content of the sidebar is toggled
+        state = controller.sidebar.hidden
+        controller.sidebar.toggle()
+        new_state = controller.sidebar.hidden
+        assert state != new_state
+        state = new_state
+
+        # Load again and check sidebar state persistence (opened)
+        unique_reader.home()
+        controller.refresh()
+        assert controller.sidebar.loaded
+        new_state = controller.sidebar.hidden
+        assert state == new_state
+        controller.sidebar.toggle()
+        state = controller.sidebar.hidden
+
+        # Load again and check sidebar state persistence (reduced)
+        unique_reader.home()
+        controller.refresh()
+        assert controller.sidebar.loaded
+        new_state = controller.sidebar.hidden
+        assert state == new_state
