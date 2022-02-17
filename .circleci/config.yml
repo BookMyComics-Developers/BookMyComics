@@ -54,8 +54,7 @@ commands:
   chrome-setup:
     description: "Test setup for chrome testing"
     steps:
-      - browser-tools/install-chrome:
-          chrome-version: 90.0.4430.212
+      - browser-tools/install-chrome
       - browser-tools/install-chromedriver
       - browser-test-setup:
           browser: chrome
@@ -157,6 +156,10 @@ jobs:
       - run:
           command: pytest -v -s --browser << parameters.browser >> tests/func/test_load.py tests/func/test_sidebar_display.py tests/func/test_options.py
 
+      - store_artifacts:
+          path: /tmp/chrome.log
+          destination: chrome-basic.log
+
   test-common-advanced:
     parameters:
       browser:
@@ -170,6 +173,10 @@ jobs:
       - << parameters.browser >>-setup
       - run:
           command: pytest -v -s --browser << parameters.browser >> tests/func/test_register.py
+
+      - store_artifacts:
+          path: /tmp/chrome.log
+          destination: chrome-advanced.log
 
   test-reader:
     parameters:
@@ -186,6 +193,10 @@ jobs:
       - << parameters.browser >>-setup
       - run:
           command: pytest -v -s --browser << parameters.browser >> --reader << parameters.reader >> tests/func/test_reader.py
+
+      - store_artifacts:
+          path: /tmp/chrome.log
+          destination: chrome-<< parameters.reader >>.log
 
 workflows:
   version: 2

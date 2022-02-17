@@ -30,6 +30,8 @@ class Wrapper(BaseWebdriverWrapper):
                     self._snap_prefix,
                     'chromium/current/usr/lib/chromium-browser/chromedriver',
                 ),
+                log_path='/tmp/chrome.log',
+                service_args=['--verbose'],
             )
 
         print('[Chrome] Loading addon from "{}"'.format(self._ext.unpacked_path))
