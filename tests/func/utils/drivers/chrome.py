@@ -17,7 +17,7 @@ class Wrapper(BaseWebdriverWrapper):
 
         print('[Chrome] Loading addon from "{}"'.format(self._ext.unpacked_path))
         print('[Chrome] Loading manifest from "{}"'.format(self._ext._manifest_path))
-        self._driver = webdriver.Chrome(options=options)
+        self._driver = webdriver.Chrome(options=options, service_args=["--verbose", "--log-path=/tmp/chrome.log"])
 
     def ensure_click(self, element):
         """
