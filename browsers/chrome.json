@@ -120,6 +120,28 @@
             "all_frames": true
         },
         {
+            "matches": ["*://chapmanganato.com/*"],
+            "js": [
+                "strings.js",
+                "utils.js",
+                "engine/utils.js",
+                "engine/storage/compat.js",
+                "engine/settings.js",
+                "engine/storage/common.js",
+                "engine/storage/local_storage.js",
+                "engine/storage/sync_storage.js",
+                "engine/storage/factory.js",
+                "engine/datamodel.js",
+                "engine/messaging.js",
+                "engine/ui.js",
+                "sources.js",
+                "engine/bookmycomics.js",
+                "support/manganato.js",
+                "entrypoint.js"
+            ],
+            "all_frames": true
+        },
+        {
             "matches": ["*://fanfox.net/*"],
             "js": [
                 "strings.js",
