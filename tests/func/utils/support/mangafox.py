@@ -206,7 +206,8 @@ class FanFoxDriver(SupportBase):
         url = self._driver.current_url
         if 'fanfox.net' not in url:
             return None
-        return url.split('/')[4]
+        elem = self._driver.find_element(by=By.CSS_SELECTOR, value='.reader-header-title-1 > a')
+        return elem.text
 
     def get_chapter(self):
         """
