@@ -71,16 +71,19 @@ class FanFoxNavBar:
     def prev_page(self):
         if not self._pages or self._pageIdx <= 0:
             return False
-        self._wrapper.ensure_click(self._pages[0]) # Click on the "<" button
+        self._wrapper.ensure_click(self._pages[0])  # Click on the "<" button
         return self.update()
 
     def has_next_page(self):
-        return self._chapter_next is not None
+        return ((self._pages is not None
+                 and self._pageIdx < (len(self._pages)-1))
+                or (self._chapter_next is not None
+                    and self._chapter_next.get_attribute('href') != self._driver.current_url))
 
     def next_page(self):
         if not self._pages or self._pageIdx == (len(self._pages) - 1):
             return False
-        self._wrapper.ensure_click(self._pages[len(self._pages) -1 ]) # Click on the ">" button
+        self._wrapper.ensure_click(self._pages[len(self._pages) - 1])   # Click on the ">" button
         return self.update()
 
     def last_page(self):
