@@ -335,8 +335,11 @@ class SideBarController:
                    register, etc)
         """
         with FrameFocus(self._driver, self._frame):
-            if self._driver.find_element(by=By.CLASS_NAME, value='notif-transform'):
-                self._driver.execute_script('document.querySelector(".notif-transform").classList.remove("notif-transform")')
+            try:
+                if self._driver.find_element(by=By.CLASS_NAME, value='notif-transform'):
+                    self._driver.execute_script('document.querySelector(".notif-transform").classList.remove("notif-transform")')
+            except NoSuchElementException:
+                pass
 
 
 class OptionsController:

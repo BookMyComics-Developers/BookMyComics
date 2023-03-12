@@ -118,6 +118,8 @@
   cursor: pointer;
   width: 18px;
   text-align: center;
+}
+#hide-but.hover-transform {
   transition: left .3s, right .3s;
 }
 #hide-but.left {
@@ -137,7 +139,7 @@
   background-color: #ebebeb;
 }
 .notif-transform {
-  transition-property: 'background-color';
+  transition-property: background-color;
   transition-delay: 0s;
   transition-duration: 2s;
 }
@@ -356,7 +358,7 @@ ul, .mangaListItem {
     <div id="refresh-but" class="left"><span class="fa fa-rotate"></span></div>
     <div id="register-but" class="left">+</div>
     <div id="delete-but" class="left"><span class="fa fa-trash"></span></div>
-    <div id="hide-but" class="left">&gt;</div>
+    <div id="hide-but" class="left hover-transform">&gt;</div>
   </body>
   <script src="scripts/load-bookmarks.js" crossorigin="anonymous"></script>
 </html>
