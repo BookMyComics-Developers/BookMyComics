@@ -153,6 +153,7 @@ class TestNavigate:
                      predicate=predicates.with_next_page)
         orig_n_items = len(controller.sidebar.get_registered())
         controller.register('sample100')
+        controller.sidebar.wait_notification_done()
         assert len(controller.sidebar.get_registered()) != orig_n_items
 
         #
@@ -162,8 +163,8 @@ class TestNavigate:
         prev_url = controller.driver.current_url
 
         # Now, browse to the next page
-        controller.sidebar.reset_notification()
         controller.sidebar.toggle()  # Hide it to ensure we can click on next_page
+        controller.sidebar.reset_notification()
         reader_driver.next_page()
         controller.refresh()
         controller.sidebar.wait_notification()
