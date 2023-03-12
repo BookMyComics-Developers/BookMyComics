@@ -104,14 +104,17 @@ BmcEngine.prototype._dispatchLoad = function () {
  * This method allows to offer an unique behavior based on event communication,
  * whether the comicId was already resolved or not.
  *
+ * Note that in the case of update of the memoized information, this method
+ * will handle stale data, unless it's forcefully refreshed.
+ *
  */
-BmcEngine.prototype._memoizeComic = function () {
+BmcEngine.prototype._memoizeComic = function (force_refresh) {
     const source = this._comic ? this._comic.getSource(this._reader) : null;
     if (!source) {
         LOGS.warn('E0001');
         return;
     }
-    if (this._comic.id !== undefined) {
+    if (!force_refresh && this._comic.id !== undefined) {
         // console.log(`BmcEngine._memoizeComic: Cache Hit (${this._comic.id}).`);
         this._dispatchLoad();
         return ;
@@ -204,7 +207,7 @@ BmcEngine.prototype.track = function() {
 
     // Now fire the load or cache hit, that shall trigger the previously
     // registered event listener
-    this._memoizeComic();
+    this._memoizeComic(true);
 };
 
 BmcEngine.prototype.sendNotificationWithComicInfo = function(event, err) {
