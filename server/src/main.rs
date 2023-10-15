@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use actix::{Actor, ActorContext, StreamHandler};
 use actix_web::middleware::Logger;
@@ -18,38 +18,34 @@ impl Drop for WsSession {
 }
 */
 
-struct WsSessionHolder<'client> {
+struct WsSessionHolder {
     session: WsSession,
-    client: &'client Client<'client>,
+    client: Arc<Client>,
 }
 
-struct Client<'client> {
+struct Client {
     pub id: String,
     // One client may have multiple active web-socket sessions
     // Used to:
     // - Notify all sessions of a data update
     // - Invalidate all other sessions in case of credentials update
-    sessions: Mutex<Vec<WsSessionHolder<'client>>>,
+    sessions: Mutex<Vec<WsSessionHolder>>,
 }
 
 // The server may have multiple active Clients
-struct ServerContext<'server> {
-    clients: Mutex<Vec<Client<'server>>>,
+struct ServerContext {
+    clients: Mutex<Vec<Arc<Client>>>,
 }
 
-impl<'srv> ServerContext<'srv> {
-    fn inserted_client<'client>(&self, client_id: &str, clients: &'srv mut Vec::<Client<'client>>) -> &Client<'client> {
-        let client = Client{id: String{vec: client_id.into()}, sessions: Mutex::new(Vec::<WsSessionHolder>::new())};
-        clients.push(client);
-        return clients.last().unwrap();
-    }
-
-    fn ensure_client(&self, client_id: &str) -> &Client {
+impl ServerContext {
+    fn ensure_client(&self, client_id: &str) -> Arc<Client> {
         let mut clients = self.clients.lock().unwrap();
-        if let Some(client) = clients.iter_mut().find(|&client| client.id == client_id) {
-            return client;
+        if let Some(client) = clients.iter_mut().find(|client| client.id == client_id) {
+            return Arc::clone(client);
         }
-        return self.inserted_client(&client_id, &mut clients);
+        let client = Arc::new(Client{id: client_id.into(), sessions: Mutex::new(Vec::new())});
+        clients.push(Arc::clone(&client));
+        client
     }
 
     // fn remove_client(&self, client: Client) {
@@ -86,10 +82,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
 }
 
 #[post("/login")]
-async fn ws_login(ctx: web::Data<ServerContext<'_>>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+async fn ws_login(ctx: web::Data<ServerContext>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     log::info!("Requested Health route");
-    let client = ctx.ensure_client(&"test");
-    let holder = WsSessionHolder{session: WsSession{}, client: &client};
+    let holder = WsSessionHolder{session: WsSession{}, client: ctx.ensure_client(&"test")};
     //client.add_session(holder);
     ws::start(holder.session, &req, stream)
 }
@@ -112,7 +107,7 @@ async fn main() -> std::io::Result<()> {
     ssl_ctx.set_certificate_chain_file("cert.pem").unwrap();
 
     let server_context = web::Data::new(ServerContext {
-        clients: Mutex::new(Vec::<Client>::new()),
+        clients: Mutex::new(Vec::new()),
     });
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     HttpServer::new(move ||
