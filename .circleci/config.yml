@@ -1,4 +1,3 @@
----
 # Javascript Node CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
@@ -154,8 +153,11 @@ jobs:
           at: /tmp/ws
 
       - << parameters.browser >>-setup
+      - run: mkdir -p test-results
       - run:
-          command: pytest -v -s --browser << parameters.browser >> tests/func/test_load.py tests/func/test_sidebar_display.py tests/func/test_options.py
+          command: pytest --junitxml=test-results/junit.xml -o junit_family=legacy -v -s --browser << parameters.browser >> tests/func/test_load.py tests/func/test_sidebar_display.py tests/func/test_options.py
+      - store_test_results:
+          path: test-results
 
   test-common-advanced:
     parameters:
@@ -168,8 +170,11 @@ jobs:
       - attach_workspace:
           at: /tmp/ws
       - << parameters.browser >>-setup
+      - run: mkdir -p test-results
       - run:
-          command: pytest -v -s --browser << parameters.browser >> tests/func/test_register.py
+          command: pytest --junitxml=test-results/junit.xml -o junit_family=legacy -v -s --browser << parameters.browser >> tests/func/test_register.py
+      - store_test_results:
+          path: test-results
 
   test-reader:
     parameters:
@@ -184,8 +189,11 @@ jobs:
       - attach_workspace:
           at: /tmp/ws
       - << parameters.browser >>-setup
+      - run: mkdir -p test-results
       - run:
-          command: pytest -v -s --browser << parameters.browser >> --reader << parameters.reader >> tests/func/test_reader.py
+          command: pytest --junitxml=test-results/junit.xml -o junit_family=legacy -v -s --browser << parameters.browser >> --reader << parameters.reader >> tests/func/test_reader.py
+      - store_test_results:
+          path: test-results
 
 workflows:
   version: 2
@@ -195,19 +203,19 @@ workflows:
       - build-ext: &build_ff
           name: build-firefox
           requires:
-          - basic-testing
+            - basic-testing
       - test-common-basics: &basics_ff
           name: test-firefox-basics
           browser: firefox
           requires:
-          - build-firefox
-          - basic-testing
+            - build-firefox
+            - basic-testing
       - test-reader:
           name: test-firefox-localhost
           browser: firefox
           reader: localhost
           requires: &ff_requirements
-          - test-firefox-basics
+            - test-firefox-basics
       - test-common-advanced:
           name: test-firefox-advanced
           browser: firefox
@@ -218,13 +226,13 @@ workflows:
           name: test-chrome-basics
           browser: chrome
           requires:
-          - basic-testing
+            - basic-testing
       - test-reader:
           name: test-chrome-localhost
           browser: chrome
           reader: localhost
           requires: &chrome_requirements
-          - test-chrome-basics
+            - test-chrome-basics
       - test-common-advanced:
           name: test-chrome-advanced
           browser: chrome
