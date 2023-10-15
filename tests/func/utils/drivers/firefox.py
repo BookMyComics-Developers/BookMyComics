@@ -3,6 +3,7 @@ from os import path
 import uuid
 
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 
 from .base import BaseWebdriverWrapper
 
@@ -62,11 +63,8 @@ class Wrapper(BaseWebdriverWrapper):
             Ensures that the element is clickable (within viewport) then clicks
             on it.
         """
-        loc = element.location
-        wsz = self._driver.get_window_size()
-        js_scroll_command = 'window.scrollTo({},{});'.format(loc['x'] - wsz['width']/2,
-                                                             loc['y'] - wsz['height']/2)
-        self._driver.execute_script(js_scroll_command)
+        ActionChains(self._driver).move_to_element(element).perform()
+        element.click()
 
     def clear_storage(self):
         """

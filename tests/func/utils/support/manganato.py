@@ -37,7 +37,8 @@ class MangaNatoDriver(SupportBase):
             if len(chapters) < 3:
                 continue
             href = chapters[1].get_attribute('href')
-            if (('://manganato.com/' not in href and '://readmanganato.com/' not in href) or href in to_ignore):
+            if (('://manganato.com/' not in href and '://chapmanganato.com/' not in href)
+                    or href in to_ignore):
                 continue
             url_parts = [p for p in href.split('/') if p]
             if len(url_parts[-1].split('-')[-1].split('.')) > 1:
@@ -80,7 +81,7 @@ class MangaNatoDriver(SupportBase):
             Extracts the comic name from the current URL
         """
         url = self._driver.current_url
-        if 'readmanganato.com' not in url:
+        if 'chapmanganato.com' not in url:
             return None
         parts = self._driver.find_elements(
             by=By.CSS_SELECTOR,

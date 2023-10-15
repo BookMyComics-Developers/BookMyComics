@@ -29,8 +29,12 @@ BmcSources.prototype._load = function(origin) {
             key: 'manganato.com',
             makeObj: () => new MangaNatoComPlugin(),
         },
-        {
+        {  // Keep for backwards compat: Allow loading `readmanganato` pages
             key: 'readmanganato.com',
+            makeObj: () => new MangaNatoComPlugin(),
+        },
+        {
+            key: 'chapmanganato.com',
             makeObj: () => new MangaNatoComPlugin(),
         },
         {

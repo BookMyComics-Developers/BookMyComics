@@ -732,31 +732,26 @@ function triggerTransition(elem, color) {
     const origColor = elem.style.backgroundColor || getComputedStyle(elem).backgroundColor;
 
     // -> Ensure it's not present when setting the color
+    elem.classList.remove('hover-transform');
     elem.classList.remove('notif-transform');
 
-    // Now set the color to transition from
-    elem.style.backgroundColor = color;
-
-    /*
-     * /!\ NOTE IMPORTANT /!\
-     * Accessing a DOM property seems to force a redraw, preventing browser
-     * optimization on style settings (by batching updates) which might
-     * actually hide the transition.
-     * /!\ NOTE IMPORTANT /!\
-     */
-    void elem.offsetHeight;
-
-    // Add the transition effect _before_ changing the color
-    elem.classList.add('notif-transform');
-
-    // And finally set the color to get back to (original color)
-    // => This triggers the actual transition effect
-    elem.style.backgroundColor = origColor;
-
-    // Remove all mentions of transitions after 2 secs
     setTimeout(() => {
-        removeTransitions();
-    }, 2000);
+        // Now set the color to transition from
+        elem.style.backgroundColor = color;
+
+        // Add the transition effect _before_ changing the color
+        elem.classList.add('notif-transform');
+
+        // And finally set the color to get back to (original color)
+        // => This triggers the actual transition effect
+        elem.style.backgroundColor = origColor;
+
+        // Remove all mentions of transitions after 2 secs
+        setTimeout(() => {
+            removeTransitions();
+            elem.classList.add('hover-transform');
+        }, 2000);
+    }, 0);
 }
 
 function removeTransitions() {

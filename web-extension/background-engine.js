@@ -368,9 +368,16 @@ bmcMessaging.addHandler(
 function register(label, comic, source, cb) {
     LOGS.log('S10', {'common': {label: label, chapter: comic.chapter, page: comic.page},
                      'source': JSON.stringify(source)});
-    return bmcData.registerComic(label, comic, source, (err, id) => {
-        LOGS.debug('S11', {'err': err});
-        return cb(err, id);
+    return bmcData.registerComic(label, comic, source, (reg_err, id) => {
+        LOGS.debug('S11', {'err': reg_err});
+        bmcData.getComic(id, (get_err, comicData) => {
+            // Skip up-to-date checks if `get` failed.
+            if (get_err)
+                return cb(reg_err, id);
+            checkSourcesUpdates(comicData, cloneArray(comicData._sources), () => {
+                return cb(reg_err, id);
+            });
+        });
     });
 }
 
