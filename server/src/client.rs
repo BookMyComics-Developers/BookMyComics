@@ -3,9 +3,8 @@ use std::sync::Mutex;
 
 use actix::{Actor, Context, Handler, Message};
 
-use crate::session::WsSessionHolder;
 use crate::messages::*;
-
+use crate::session::WsSessionHolder;
 
 #[derive(Debug, Message)]
 #[rtype(result = "bool")]
@@ -18,7 +17,6 @@ pub struct Register {
 pub struct Unregister {
     pub id: i64,
 }
-
 
 pub struct Client {
     pub id: String,
@@ -38,27 +36,36 @@ impl Client {
     }
 
     pub fn add_session(&mut self, session: WsSessionHolder) -> bool {
-        if let Ok(sess) = self.sessions.lock() {
+        if let Ok(mut sess) = self.sessions.lock() {
             if sess.contains_key(&session.id) {
-                log::error!("Cannot add session for client {:?}: Already present in internal vector", self.id);
+                log::error!(
+                    "Cannot add session for client {:?}: Already present in internal vector",
+                    self.id
+                );
                 return false;
             } else {
                 sess.insert(session.id, session);
                 return true;
             }
         } else {
-            log::error!("Cannot add session for client {:?}: Already present in internal vector", self.id);
+            log::error!(
+                "Cannot add session for client {:?}: Already present in internal vector",
+                self.id
+            );
             return false;
         }
     }
 
     pub fn remove_session(&mut self, session_id: &i64) {
-        if let Ok(sess) = self.sessions.lock() {
+        if let Ok(mut sess) = self.sessions.lock() {
             if !sess.contains_key(&session_id) {
-                log::error!("Could not remove session for client {:?}: Not present in internal vector", self.id);
+                log::error!(
+                    "Could not remove session for client {:?}: Not present in internal vector",
+                    self.id
+                );
             } else {
                 sess.remove(&session_id);
-                return ;
+                return;
             }
         }
         log::error!("Could not lock sessions remove {:?}", &session_id);
@@ -80,8 +87,10 @@ impl Actor for Client {
 impl Handler<Register> for Client {
     type Result = bool;
     fn handle(&mut self, msg: Register, _: &mut Context<Self>) -> bool {
-        println!("Client {:?}: Handling Register: session={:?}",
-                 self.id, &msg.holder.id);
+        println!(
+            "Client {:?}: Handling Register: session={:?}",
+            self.id, &msg.holder.id
+        );
         return self.add_session(msg.holder);
     }
 }
@@ -89,8 +98,7 @@ impl Handler<Register> for Client {
 impl Handler<Unregister> for Client {
     type Result = bool;
     fn handle(&mut self, msg: Unregister, _: &mut Context<Self>) -> bool {
-        println!("Client {:?}: Handling Unregister: {:?}",
-                 self.id, &msg.id);
+        println!("Client {:?}: Handling Unregister: {:?}", self.id, &msg.id);
         self.remove_session(&msg.id);
         return self.empty();
     }
@@ -101,7 +109,8 @@ impl Handler<TrackReader> for Client {
     fn handle(&mut self, msg: TrackReader, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling TrackReader: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -111,7 +120,8 @@ impl Handler<UpdateReader> for Client {
     fn handle(&mut self, msg: UpdateReader, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling UpdateReader: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -121,7 +131,8 @@ impl Handler<UntrackReader> for Client {
     fn handle(&mut self, msg: UntrackReader, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling UntrackReader: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -131,7 +142,8 @@ impl Handler<TrackComic> for Client {
     fn handle(&mut self, msg: TrackComic, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling TrackComic: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -141,7 +153,8 @@ impl Handler<UpdateComic> for Client {
     fn handle(&mut self, msg: UpdateComic, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling UpdateComic: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -151,7 +164,8 @@ impl Handler<UntrackComic> for Client {
     fn handle(&mut self, msg: UntrackComic, _: &mut Context<Self>) {
         println!(
             "Client {:?}: Handling UntrackComic: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
     }
 }
@@ -161,10 +175,9 @@ impl Handler<ListComics> for Client {
     fn handle(&mut self, msg: ListComics, _: &mut Context<Self>) -> ComicListing {
         println!(
             "Client {:?}: Handling ListComics: {:?}",
-            self.id, serde_json::to_string(&msg)
+            self.id,
+            serde_json::to_string(&msg)
         );
-        ComicListing {
-            comics: Vec::new(),
-        }
+        ComicListing { comics: Vec::new() }
     }
 }

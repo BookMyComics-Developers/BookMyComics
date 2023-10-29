@@ -1,25 +1,33 @@
 use std::time::Instant;
 
+use actix::{Actor, Addr};
 use actix_web::middleware::Logger;
 use actix_web::{
-    get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result, guard, http::KeepAlive
+    get, guard, http::KeepAlive, post, web, App, Error, HttpRequest, HttpResponse, HttpServer,
+    Responder, Result,
 };
 use actix_web_actors::ws;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 
-use bookmaker::{
-    session::WsSession, context::ServerContext
-};
+use bookmaker::{context::ServerContext, session::WsSession};
 
 #[get("/login")]
-async fn ws_login(ctx: web::Data<Addr<ServerContext>>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+async fn ws_login(
+    req: HttpRequest,
+    stream: web::Payload,
+    ctx: web::Data<Addr<ServerContext>>,
+) -> Result<HttpResponse, Error> {
     log::info!("Requested Login route");
-    ws::start(WsSession {
-        id: -1,
-        client_id: "test".to_string(),
-        hb: Instant::now(),
-        srv: ctx.get_ref().clone(),
-    }, &req, stream)
+    ws::start(
+        WsSession {
+            id: -1,
+            client_id: "test".to_string(),
+            hb: Instant::now(),
+            srv: ctx,
+        },
+        &req,
+        stream,
+    )
 }
 
 #[get("/health")]
@@ -28,7 +36,6 @@ async fn health() -> impl Responder {
     HttpResponse::Ok().body("Alive")
 }
 
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // NOTE: Generate a self-signed temporary cert for testing via:
@@ -36,7 +43,9 @@ async fn main() -> std::io::Result<()> {
     let mut ssl_ctx = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
     // Load the TLS keys for your deployment:
     // TODO/FIXME: Make path configurable
-    ssl_ctx.set_private_key_file("key.pem", SslFiletype::PEM).unwrap();
+    ssl_ctx
+        .set_private_key_file("key.pem", SslFiletype::PEM)
+        .unwrap();
     ssl_ctx.set_certificate_chain_file("cert.pem").unwrap();
 
     let ctx = web::Data::new(ServerContext::new().start());
@@ -52,11 +61,10 @@ async fn main() -> std::io::Result<()> {
                         .service(health)
                         .service(ws_login)
                 )
-                .wrap(Logger::default())
-        )
-        .keep_alive(KeepAlive::Os)
-        // TODO/FIXME: Make listen/bind configurable
-        .bind_openssl("127.0.0.1:8443", ssl_ctx)?
-        .run()
-        .await
+                .wrap(Logger::default()))
+    .keep_alive(KeepAlive::Os)
+    // TODO/FIXME: Make listen/bind configurable
+    .bind_openssl("127.0.0.1:8443", ssl_ctx)?
+    .run()
+    .await
 }

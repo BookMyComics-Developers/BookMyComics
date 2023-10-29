@@ -1,19 +1,23 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::result::Result::{Err, Ok};
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
-use unique_id::Generator;
 use unique_id::sequence::SequenceGenerator;
+use unique_id::Generator;
 
-use actix::{Actor, Context, Handler, Message, Addr};
+use actix::{
+    Actor, ActorFutureExt, Addr, Context, ContextFutureSpawner, Handler, Message, WrapFuture,
+};
 
-use crate::session::{WsSession, WsSessionHolder};
 use crate::client;
-use crate::client::{Client};
+use crate::client::Client;
 use crate::messages::*;
+use crate::session::{WsSession, WsSessionHolder};
 
 #[derive(Debug, Message)]
-#[rtype(result = "i64")]
+#[rtype(i64)]
 pub struct RegisterSession {
     pub client_id: String,
     pub addr: Addr<WsSession>,
@@ -31,8 +35,6 @@ pub struct UnregisterSession {
     pub id: i64,
     pub client_id: String,
 }
-
-
 
 // The server may have multiple active Clients
 pub struct ServerContext {
@@ -75,7 +77,10 @@ impl ServerContext {
                 log::error!("Attempted to get invalid client({:?})", client_id);
             }
         } else {
-            log::error!("Failed to lock clients collection for client({:?})", client_id);
+            log::error!(
+                "Failed to lock clients collection for client({:?})",
+                client_id
+            );
         }
         None
     }
@@ -99,30 +104,43 @@ impl Actor for ServerContext {
 impl Handler<RegisterSession> for ServerContext {
     type Result = i64;
 
-    fn handle(&mut self, msg: RegisterSession, _: &mut Context<Self>) -> i64{
+    fn handle(&mut self, msg: RegisterSession, ctx: &mut Context<Self>) -> Self::Result {
         if let Some(client) = self.ensure_client(&msg.client_id) {
-            let session_id = self.next_id();
-            let res = client.send(
-                client::Register {
+            let session_id = Rc::new(RefCell::new(self.next_id()));
+            let r_session_id = Rc::clone(&session_id);
+            client
+                .send(client::Register {
                     holder: WsSessionHolder {
-                        id: session_id,
+                        id: *session_id.borrow(),
                         addr: msg.addr,
+                    },
+                })
+                .into_actor(self)
+                .then(move |res, act, _ctx| {
+                    match res {
+                        Ok(success) => {
+                            if success {
+                                return actix::prelude::fut::ready(());
+                            }
+                            log::error!(
+                                "Failed to register session {:?} into client({:?})",
+                                *r_session_id.borrow(),
+                                &msg.client_id
+                            );
+                        }
+                        Err(e) => {
+                            log::error!("Failed to receive answer from client Actor: {:?}", e);
+                        }
                     }
-                });
-            match res.await {
-                Ok(success) => {
-                    if success {
-                        return session_id;
-                    }
-                    log::error!("Failed to register session {:?} into client({:?})",
-                                &session_id, &msg.client_id);
-                },
-                Err(e) => {
-                    log::error!("Failed to receive answer from client Actor: {:?}", e);
-                },
-            }
+                    *r_session_id.borrow_mut() = -1;
+                    actix::prelude::fut::ready(())
+                })
+                .wait(ctx);
+            let x: Self::Result = *session_id.borrow();
+            x
+        } else {
+            -1
         }
-        return -1;
     }
 }
 
@@ -137,15 +155,12 @@ impl Handler<GetClient> for ServerContext {
     }
 }
 
-
 impl Handler<UnregisterSession> for ServerContext {
     type Result = ();
 
     fn handle(&mut self, msg: UnregisterSession, _: &mut Context<Self>) {
         if let Some(client) = self.get_client(&msg.client_id) {
-            client.send(client::Unregister {
-                id: msg.id,
-            });
+            client.send(client::Unregister { id: msg.id });
         }
     }
 }
@@ -154,18 +169,20 @@ impl Handler<BmcMessage> for ServerContext {
     type Result = ();
 
     fn handle(&mut self, msg: BmcMessage, _: &mut Context<Self>) {
-        println!("ServerContext: Processing BmcMessages for {:?}/{:?}",
-            &msg.client_id, &msg.ws_id);
+        println!(
+            "ServerContext: Processing BmcMessages for {:?}/{:?}",
+            &msg.client_id, &msg.ws_id
+        );
         if let Ok(clients) = self.clients.lock() {
             if let Some(client) = clients.get(&msg.client_id) {
                 match msg.payload {
-                    MessagePayload::TrackReader(pld) => client.send(pld),
-                    MessagePayload::UpdateReader(pld) => client.send(pld),
-                    MessagePayload::UntrackReader(pld) => client.send(pld),
-                    MessagePayload::TrackComic(pld) => client.send(pld),
-                    MessagePayload::UpdateComic(pld) => client.send(pld),
-                    MessagePayload::UntrackComic(pld) => client.send(pld),
-                    MessagePayload::ListComics(pld) => client.send(pld),
+                    MessagePayload::TrackReader(pld) => client.do_send(pld),
+                    MessagePayload::UpdateReader(pld) => client.do_send(pld),
+                    MessagePayload::UntrackReader(pld) => client.do_send(pld),
+                    MessagePayload::TrackComic(pld) => client.do_send(pld),
+                    MessagePayload::UpdateComic(pld) => client.do_send(pld),
+                    MessagePayload::UntrackComic(pld) => client.do_send(pld),
+                    MessagePayload::ListComics(pld) => client.do_send(pld),
                 }
             } else {
                 println!("Unable to get client for id {:?} ?", &msg.client_id);
