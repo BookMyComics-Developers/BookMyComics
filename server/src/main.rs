@@ -11,18 +11,18 @@ use bookmaker::{
     session::WsSession, context::ServerContext
 };
 
-#[post("/login")]
-async fn ws_login(ctx: web::Data<ServerContext>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+#[get("/login")]
+async fn ws_login(ctx: web::Data<Addr<ServerContext>>, req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     log::info!("Requested Login route");
     ws::start(WsSession {
-        id: ctx.next_id(),
+        id: -1,
         client_id: "test".to_string(),
         hb: Instant::now(),
-        srv: ctx.clone(),
+        srv: ctx.get_ref().clone(),
     }, &req, stream)
 }
 
-#[get("/")]
+#[get("/health")]
 async fn health() -> impl Responder {
     log::info!("Requested Health route");
     HttpResponse::Ok().body("Alive")
@@ -39,21 +39,18 @@ async fn main() -> std::io::Result<()> {
     ssl_ctx.set_private_key_file("key.pem", SslFiletype::PEM).unwrap();
     ssl_ctx.set_certificate_chain_file("cert.pem").unwrap();
 
-    let ctx = web::Data::new(ServerContext::new());
+    let ctx = web::Data::new(ServerContext::new().start());
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     HttpServer::new(move ||
             //create_app!(srvCtx)
             App::new()
                 .app_data(ctx.clone())
                 .service(
-                    web::scope("/")
-                    // TODO/FIXME: Make host configurable
-                    .guard(guard::Host("bmc.joacchim.fr"))
-                    .service(
-                        web::scope("/v1")
-                            .service(health)
-                            .service(ws_login)
-                    )
+                    web::scope("/v1")
+                        // TODO/FIXME: Make host configurable
+                        //.guard(guard::Host("bmc.joacchim.fr"))
+                        .service(health)
+                        .service(ws_login)
                 )
                 .wrap(Logger::default())
         )

@@ -1,24 +1,29 @@
 use std::time::{Duration, Instant};
 
+use serde_json;
+
 use actix::prelude::{Running};
-use actix::{Actor, ActorContext, AsyncContext, StreamHandler, Addr};
+use actix::{Actor, ActorContext, AsyncContext, StreamHandler, Handler, Addr};
 
 use actix_web::{web, Result};
 use actix_web_actors::ws;
+use actix_ws::{CloseReason, CloseCode};
 
-use crate::context::ServerContext;
+use crate::context::{ServerContext, RegisterSession, UnregisterSession};
+use crate::messages::*;
 
 
 pub struct WsSession {
     pub id: i64,
     pub client_id: String,
     pub hb: Instant,
-    pub srv: web::Data<ServerContext>,
+    pub srv: web::Data<Addr<ServerContext>>,
 }
 
+#[derive(Debug)]
 pub struct WsSessionHolder {
     pub id: i64,
-    addr: Addr<WsSession>,
+    pub addr: Addr<WsSession>,
 }
 
 // Heartbeat every 5 secs.
@@ -27,25 +32,26 @@ const HEARTBEAT_PERIOD: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration =  Duration::from_secs(10);
 
 impl WsSession {
-    fn register(&self, addr: Addr<WsSession>) {
-        let shared_client = self.srv.ensure_client(&self.client_id);
-        if let Ok(mut client) = shared_client.lock() {
-            client.add_session(WsSessionHolder {
-                id: self.id,
-                addr: addr,
-            });
-        };
+    fn register(&self, addr: Addr<WsSession>) -> bool {
+        let resp = self.srv.send(RegisterSession {
+            client_id: self.client_id.to_string(),
+            addr: addr,
+        });
+        match resp.await {
+            Ok(id) => { self.id = id; },
+            Err(e) => {
+                log::error!("Failed to register session. Forcefully closing Websocket");
+                return false;
+            }
+        }
+        return true;
     }
 
     fn unregister(&self) {
-        let shared_client = self.srv.ensure_client(&self.client_id);
-        if let Ok(mut client) = shared_client.lock() {
-            client.remove_session(&self.id);
-            if ! client.empty() {
-                return
-            }
-        }
-        self.srv.remove_client(&self.client_id);
+        self.srv.send(UnregisterSession {
+            id: self.id,
+            client_id: self.client_id.to_string()
+        });
     }
 
     // Sends heartbeats to client at regular intervals
@@ -74,8 +80,14 @@ impl Actor for WsSession {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
+        if !self.register(ctx.address()) {
+            ctx.close(Some(CloseReason {
+                code: CloseCode::Error,
+                description: Some("Unable to register session internally".to_string()),
+            }));
+            return ctx.stop();
+        }
         self.hb(ctx);
-        self.register(ctx.address());
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
@@ -90,8 +102,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
         match msg {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => {
-                // Process DB Requests here
-                ctx.text(text)
+                if let Ok(json) = serde_json::from_str(&text) {
+                    // Process DB Requests here
+                    self.srv.send(BmcMessage {
+                        client_id: self.client_id,
+                        ws_id: self.id,
+                        payload: json,
+                    });
+                } else {
+                    println!("Could not unserialize message {:?}", text);
+                }
             },
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => {
@@ -105,3 +125,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
     }
 }
 
+impl Handler<WsMessage> for WsSession {
+    type Result = ();
+
+    fn handle(&mut self, msg: WsMessage, ctx: &mut Self::Context) {
+        ctx.text(msg.0);
+    }
+}
