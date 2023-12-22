@@ -33,6 +33,10 @@ BmcSources.prototype._load = function(origin) {
             makeObj: () => new MangaNatoComPlugin(),
         },
         {
+            key: 'chapmanganato.to',
+            makeObj: () => new MangaNatoComPlugin(),
+        },
+        {
             key: 'mangakakalot.com',
             makeObj: () => new MangaKakalotComPlugin(),
         },

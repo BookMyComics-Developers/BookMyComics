@@ -37,7 +37,7 @@ MangaNatoComPlugin.prototype.getInfos = function(url, doc) {
         const homeUrl = elems[1].getAttribute('href').split('manganato.com')[1];
         const chapter = parts[parts.length - 1].split('-')[1].split('.');
         const id = parts[parts.length - 2].split('-')[1];
-        source = new BmcComicSource(name, 'readmanganato.com', {id: id, homeUrl: homeUrl});
+        source = new BmcComicSource(name, 'chapmanganato.to', {id: id, homeUrl: homeUrl});
         comic.chapter = chapter;
         comic.page = null;
     }
@@ -55,7 +55,7 @@ MangaNatoComPlugin.prototype.computeURL = function(comic, source) {
         if (Array.isArray(comic.chapter)) {
             chapter_ref = comic.chapter.join('.');
         }
-        return `https://readmanganato.com/manga-${source.info.id}/chapter-${chapter_ref}`;
+        return `https://chapmanganato.to/manga-${source.info.id}/chapter-${chapter_ref}`;
     }
-    return `https://readmanganato.com${source.info.homeUrl}`;
+    return `https://chapmanganato.to${source.info.homeUrl}`;
 };
